@@ -1,12 +1,3 @@
-# graduate-map
-Create and show a graduation destination map.
-
-# 细节备忘
-
-## 输入信息格式
-
-使用一个JSON来存储信息，格式如下：
-```json
 {
   "list": [
     [
@@ -35,16 +26,3 @@ Create and show a graduation destination map.
     ]
   }
 }
-```
-
-## `map-university`组件`data`格式
-```json
-{
-  name: "北京理工大学",
-  location: {
-	lng: 116.322726,
-	lat: 39.966659
-  },
-  list: ["flw", "fdd"]
-}
-```

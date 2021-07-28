@@ -1,0 +1,209 @@
+<!--
+ * @Author: flwfdd
+ * @Date: 2021-07-25 09:09:48
+ * @LastEditTime: 2021-07-28 16:57:50
+ * @Description: 
+ * _(:з」∠)_
+-->
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <!--Code by. 范滇东-->
+  <title>毕业去向</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios@0.21.0/dist/axios.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="https://unpkg.com/vue-baidu-map"></script>
+  <!--引入思源字体-->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:100,300,400,500,700,900">
+
+  <style>
+    #app {
+      font-family: Noto Serif SC;
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    #map {
+      width: 100%;
+      height: 400px;
+    }
+
+    .overlay-out {
+      width: 200px;
+      height: 200px;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .overlay-in {
+      pointer-events: all;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-container fluid class="pa-0">
+        <v-btn @click="dialog=!dialog">233</v-btn>
+        <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition">
+          <v-toolbar dense color="purple white--text">
+            <v-toolbar-title>大学蹭饭网</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click="dialog = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <baidu-map id="map" :center="center" :zoom="zoom" @ready="handler" @zoomend="zoom=map.getZoom()" :style="{height:ScreenH()}">
+            <template v-if="zoom>=9">
+              <map-university v-for="i in university_data" :key="i.name" :data="i"></map-university>
+            </template>
+            <template v-else>
+              <map-university v-for="i in city_data" :key="i.name" :data="i"></map-university>
+            </template>
+          </baidu-map>
+        </v-dialog>
+      </v-container>
+    </v-app>
+  </div>
+
+
+  <script>
+    //使能vue百度地图
+    Vue.use(VueBaiduMap.default, { ak: "Qi8t1g8AEztZHCoOYiKv8laAatGjwOP1" });
+
+    Vue.component("map-university", {
+      props: ["data"],
+      methods: {
+        draw({ el, BMap, map }) {
+          var loc = this.data.location;
+          const pixel = map.pointToOverlayPixel(new BMap.Point(loc.lng, loc.lat))
+          el.style.left = pixel.x - 100 + 'px'
+          el.style.top = pixel.y - 100 + 'px'
+        }
+      },
+      template: `
+        <bm-overlay pane="labelPane" @draw="draw" class="overlay-out d-flex justify-center align-center">
+          <v-menu top offset-y open-on-hover>
+            <template v-slot:activator="{ on, attrs }">
+
+              <v-chip v-bind="attrs" v-on="on" @touchmove="on.mouseenter" @touchend="on.mouseleave"
+                :color="'pink lighten-'+(5-  data.list.length)+' white--text'" class="overlay-in">
+                {{data.name}}
+                <v-avatar right color="pink lighten-5 pink--text">
+                  {{data.list.length}}
+                </v-avatar>
+              </v-chip>
+            </template>
+
+            <v-list dense color="cyan lighten-5">
+              <v-list-item>
+                <v-list-item-title class="cyan--text text--darken-2">{{data.name}}</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-for="(item, index) in data.list" :key="index">
+                <v-list-item-subtitle class="cyan--text">{{index+1}}. {{ item }}</v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </bm-overlay>
+      `
+    })
+
+    var vm = new Vue({ //主应用
+      vuetify: new Vuetify(),
+      el: "#app",
+      data: {
+        zoom: 4,
+        center:"中国",
+        map: "",
+        location: {},
+        university_data: {},
+        city_data: {},
+        dialog: false
+      },
+      methods: {
+        handler({ BMap, map }) {
+          //console.log(BMap, map);
+          vm.map = map;
+          map.enableScrollWheelZoom();
+        },
+        init(dic) {
+          this.location = dic.location;
+
+          //i[name,city,university]
+          for (i of dic.list) {
+            //初始化大学信息
+            if (this.university_data.hasOwnProperty(i[2])) {
+              this.university_data[i[2]].list.push(i[0]);
+            }
+            else {
+              this.university_data[i[2]] = {
+                name: i[2],
+                location: {
+                  lat: this.location[i[2]][0],
+                  lng: this.location[i[2]][1]
+                },
+                list: [i[0]]
+              }
+            }
+
+            //初始化省份信息
+            if (this.city_data.hasOwnProperty(i[1])) {
+              this.city_data[i[1]].list.push(i[0] + " " + i[2]);
+            }
+            else {
+              this.city_data[i[1]] = {
+                name: i[1],
+                location: {
+                  lat: this.location[i[1]][0],
+                  lng: this.location[i[1]][1]
+                },
+                list: [i[0] + " " + i[2]]
+              }
+            }
+          }
+        },
+        ScreenH(){
+          return document.body.clientHeight+'px';
+        },
+        Log(msg) {
+          console.log(msg);
+        }
+      },
+      watch: {
+      },
+      computed:{
+      },
+      created: function () {
+        axios.get("./test.json")
+          .then(res => {
+            this.init(res.data);
+          })
+      }
+    });
+
+
+  </script>
+
+  <script>
+    /*
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?a6bc92b553163ae26fadce961a0713cf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+    */
+  </script>
+
+</body>
+
+</html>
