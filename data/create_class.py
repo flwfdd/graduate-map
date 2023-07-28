@@ -20,7 +20,7 @@ dic=read_json("./class_list.json")
 for i in dic:
     for j in dic[i]:
         if os.path.exists("./"+j+".json")==False:
-            os.system("copy {} {}".format("template.json",j+".json"))
+            os.system("cp {} {}".format("template.json",j+".json"))
         mdic=read_json("./"+j+".json")
         mdic['class_name']=j
         save_json("./"+j+".json",mdic)
