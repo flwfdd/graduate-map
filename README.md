@@ -1,5 +1,6 @@
 # graduate-map
-Create and show a graduation destination map.
+Graduation destination map.
+为云南师大附中开发的毕业去向地图<del>（中国大学蹭饭网）</del>。
 
 # 细节备忘
 

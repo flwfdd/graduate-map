@@ -1,0 +1,266 @@
+<!--
+ * @Author: flwfdd
+ * @Date: 2021-07-25 09:09:48
+ * @LastEditTime: 2021-07-31 11:13:31
+ * @Description: 
+ * _(:з」∠)_
+-->
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <!--Code by. 范滇东-->
+  <title>毕业去向</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://fastly.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/axios@0.21.0/dist/axios.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <script src="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/vue-baidu-map@0.21.22/index.min.js"></script>
+  <!--引入思源字体-->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:100,300,400,500,700,900">
+
+  <style>
+    #app {
+      font-family: Noto Serif SC;
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    #map {
+      width: 100%;
+      height: 400px;
+    }
+
+    .overlay-out {
+      width: 200px;
+      height: 200px;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .overlay-in {
+      pointer-events: all;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-container fluid>
+        <v-card color="light-blue white--text">
+          <v-card-title>
+            {{data.class_name}} 大学蹭饭网
+          </v-card-title>
+          <v-card-text class="white--text py-0">
+            共{{data.list.length}}人可蹭
+          </v-card-text>
+          <v-card-text class="white--text">
+            Tips:<br />
+            1. 点击下方按钮可进入蹭饭地图。<br />
+            2. 点击蹭饭表表头可排序，点击列表项目可进入对应蹭饭地图。<br/>
+            3. 手机在地图中长按粉色图标可展开详细信息。
+          </v-card-text>
+          <v-btn block color="red accent-2 white--text" @click="dialog=!dialog">打开蹭饭地图</v-btn>
+        </v-card>
+
+        <v-card class="mt-4" color="light-blue accent-2 white--text">
+          <v-card-title>
+            蹭饭表
+            <v-spacer></v-spacer>
+            <v-text-field color="white" v-model="search" append-icon="mdi-magnify" label="筛选">
+            </v-text-field>
+          </v-card-title>
+          <v-data-table :headers="table_header" :items="table_data" :items-per-page="100" :search="search"
+            @click:row="TableClick">
+          </v-data-table>
+        </v-card>
+
+        <v-card class="mt-4">
+          <v-card-text>Code by 范滇东</v-card-text>
+        </v-card>
+
+        <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition">
+          <v-toolbar dense color="red accent-2 white--text">
+            <v-toolbar-title>大学蹭饭地图</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-btn icon dark @click="dialog = false">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <baidu-map id="map" :center="center" :zoom="zoom" @ready="handler" @zoomend="zoom=map.getZoom()"
+            :style="{height:ScreenH()}">
+            <template v-if="zoom>=9">
+              <map-university v-for="i in university_data" :key="i.name" :data="i"></map-university>
+            </template>
+            <template v-else>
+              <map-university v-for="i in city_data" :key="i.name" :data="i"></map-university>
+            </template>
+          </baidu-map>
+        </v-dialog>
+      </v-container>
+    </v-app>
+  </div>
+
+
+  <script>
+    //使能vue百度地图
+    Vue.use(VueBaiduMap.default, { ak: "Qi8t1g8AEztZHCoOYiKv8laAatGjwOP1" });
+
+    Vue.component("map-university", {
+      props: ["data"],
+      methods: {
+        draw({ el, BMap, map }) {
+          var loc = this.data.location;
+          const pixel = map.pointToOverlayPixel(new BMap.Point(loc.lng, loc.lat))
+          el.style.left = pixel.x - 100 + 'px'
+          el.style.top = pixel.y - 100 + 'px'
+        }
+      },
+      template: `
+        <bm-overlay pane="labelPane" @draw="draw" class="overlay-out d-flex justify-center align-center">
+          <v-menu top offset-y open-on-hover>
+            <template v-slot:activator="{ on, attrs }">
+
+              <v-chip v-bind="attrs" v-on="on" @touchmove="on.mouseenter" @touchend="on.mouseleave"
+                :color="'pink lighten-'+(5-  data.list.length)+' white--text'" class="overlay-in">
+                {{data.name}}
+                <v-avatar right color="pink lighten-5 pink--text">
+                  {{data.list.length}}
+                </v-avatar>
+              </v-chip>
+            </template>
+
+            <v-list dense color="cyan lighten-5">
+              <v-list-item>
+                <v-list-item-title class="cyan--text text--darken-2">{{data.name}}</v-list-item-title>
+              </v-list-item>
+              <v-list-item v-for="(item, index) in data.list" :key="index">
+                <v-list-item-subtitle class="cyan--text">{{index+1}}. {{ item }}</v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+        </bm-overlay>
+      `
+    })
+
+    var vm = new Vue({ //主应用
+      vuetify: new Vuetify(),
+      el: "#app",
+      data: {
+        zoom: 5,
+        center: "中国",
+        map: "",
+        data: {/*data*/ },
+        location: {},
+        university_data: {},
+        city_data: {},
+        dialog: true,
+        search: "",
+        table_header: [
+          { text: '姓名', value: 'name' },
+          { text: '地区', value: 'city' },
+          { text: '大学', value: 'university' }
+        ],
+        table_data: []
+      },
+      methods: {
+        handler({ BMap, map }) {
+          //console.log(BMap, map);
+          this.dialog = false;
+          this.map = map;
+          map.enableScrollWheelZoom();
+        },
+        init(dic) {
+          this.data = dic;
+          this.location = dic.location;
+
+          //i[name,city,university]
+          for (i of dic.list) {
+            //初始化大学信息
+            if (this.university_data.hasOwnProperty(i[2])) {
+              this.university_data[i[2]].list.push(i[0]);
+            }
+            else {
+              this.university_data[i[2]] = {
+                name: i[2],
+                location: {
+                  lat: this.location[i[2]][0],
+                  lng: this.location[i[2]][1]
+                },
+                list: [i[0]]
+              }
+            }
+
+            //初始化省份信息
+            if (this.city_data.hasOwnProperty(i[1])) {
+              this.city_data[i[1]].list.push(i[0] + " " + i[2]);
+            }
+            else {
+              this.city_data[i[1]] = {
+                name: i[1],
+                location: {
+                  lat: this.location[i[1]][0],
+                  lng: this.location[i[1]][1]
+                },
+                list: [i[0] + " " + i[2]]
+              }
+            }
+
+            //初始化表格
+            this.table_data.push({
+              name: i[0],
+              city: i[1],
+              university: i[2]
+            })
+          }
+        },
+        ScreenH() {
+          //return document.body.clientHeight + 'px';
+          return 800 + 'px';
+        },
+        TableClick(a, b) {
+          let loc = this.location[a.university];
+          this.dialog = true;
+          this.zoom = 14;
+          setTimeout(()=>{
+            this.center = { lat: loc[0], lng: loc[1] };
+          },233);
+        },
+        Log(msg) {
+          console.log(msg);
+        }
+      },
+      watch: {
+      },
+      computed: {
+      },
+      created: function () {
+        // axios.get("./tt.json")
+        //   .then(res => {
+        //     this.init(res.data);
+        //   })
+        this.init(this.data);
+      }
+    });
+
+
+  </script>
+
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?a6bc92b553163ae26fadce961a0713cf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,236 @@
+<!--
+ * @Author: flwfdd
+ * @Date: 2021-07-29 16:49:07
+ * @LastEditTime: 2021-07-30 20:32:46
+ * @Description: 
+ * _(:з」∠)_
+-->
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <!--Code by. 范滇东-->
+  <title>毕业去向</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://fastly.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/axios@0.21.0/dist/axios.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <script src="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <!--引入思源字体-->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:100,300,400,500,700,900">
+
+  <style>
+    #app {
+      font-family: Noto Serif SC;
+      font-style: normal;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-container fluid>
+        <v-card color="red accent-2 white--text">
+          <v-card-title>
+            {{data.class_name}} 大学蹭饭网 管理后台
+          </v-card-title>
+          <v-card-text class="white--text">
+            Tips:<br />
+            1. 点击蹭饭表项目可进行删除。<br />
+            2. 因为我懒，所以管理后台仅支持删除操作。<br />
+            3. 提交后才会生效。<br />
+          </v-card-text>
+        </v-card>
+
+        <v-card class="mt-4" color="cyan lighten-4">
+          <v-card-title>
+            蹭饭表
+            <v-spacer></v-spacer>
+            <v-text-field color="white" v-model="search" append-icon="mdi-magnify" label="筛选">
+            </v-text-field>
+          </v-card-title>
+          <v-data-table show-select item-key="name" v-model="selected" :headers="table_header" :items="table_data"
+            :items-per-page="-1" :search="search">
+          </v-data-table>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-dialog v-model="dialog">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn block color="red white--text" v-bind="attrs" v-on="on">删除</v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title>确认删除以下内容</v-card-title>
+                    <v-card-text v-for="i in selected" :key=i.name>
+                      姓名: {{i.name}}
+                      地区: {{i.city}}
+                      大学: {{i.university}}
+                    </v-card-text>
+                    <v-card-text>
+                      <v-text-field label="密码" v-model="password"></v-text-field>
+                    </v-card-text>
+
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="green" text @click="dialog = false">取消</v-btn>
+                      <v-btn color="red" text @click="Submit">确认</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card>
+
+        <v-card class="mt-4">
+          <v-card-text>Code by 范滇东</v-card-text>
+        </v-card>
+
+        <v-snackbar v-model="snackbar" color="blue">
+          {{snackbar_msg}}
+          <template v-slot:action="{attrs}">
+            <v-btn color="white" text v-bind="attrs" @click="snackbar=false">Close</v-btn>
+          </template>
+        </v-snackbar>
+      </v-container>
+    </v-app>
+  </div>
+
+
+  <script>
+    var vm = new Vue({ //主应用
+      vuetify: new Vuetify(),
+      el: "#app",
+      data: {
+        data: {/*data*/ },
+        location: {},
+        university_data: {},
+        city_data: {},
+        search: "",
+        selected: [],
+        table_header: [
+          { text: '姓名', value: 'name' },
+          { text: '地区', value: 'city' },
+          { text: '大学', value: 'university' }
+        ],
+        table_data: [],
+        password: "",
+        dialog: false,
+        snackbar: false,
+        snackbar_msg: ""
+      },
+      methods: {
+        Submit() {
+          this.dialog = false;
+          let delete_list = [];
+          for (i in this.selected) delete_list.push(this.selected[i].name);
+          axios.get("./api", {
+            params: {
+              type: "admin_delete",
+              data: {
+                class_name: this.data.class_name,
+                password: this.password,
+                delete_list: delete_list
+              }
+            }
+          })
+            .then(res => {
+              if (res.data.status == "ok"){
+                this.Msg("提交成功awa");
+                location.reload();
+              }
+              else this.Msg("提交失败qwq");
+            })
+            .catch(res => { this.Msg("提交失败qwq"); })
+        },
+        init(dic) {
+          this.data = dic;
+          this.location = dic.location;
+
+          //i[name,city,university]
+          for (i of dic.list) {
+            //初始化大学信息
+            if (this.university_data.hasOwnProperty(i[2])) {
+              this.university_data[i[2]].list.push(i[0]);
+            }
+            else {
+              this.university_data[i[2]] = {
+                name: i[2],
+                location: {
+                  lat: this.location[i[2]][0],
+                  lng: this.location[i[2]][1]
+                },
+                list: [i[0]]
+              }
+            }
+
+            //初始化省份信息
+            if (this.city_data.hasOwnProperty(i[1])) {
+              this.city_data[i[1]].list.push(i[0] + " " + i[2]);
+            }
+            else {
+              this.city_data[i[1]] = {
+                name: i[1],
+                location: {
+                  lat: this.location[i[1]][0],
+                  lng: this.location[i[1]][1]
+                },
+                list: [i[0] + " " + i[2]]
+              }
+            }
+
+            //初始化表格
+            this.table_data.push({
+              name: i[0],
+              city: i[1],
+              university: i[2]
+            })
+          }
+        },
+        Msg(msg) {
+          this.snackbar_msg = msg;
+          this.snackbar = true;
+        },
+        Log(msg) {
+          console.log(msg);
+        }
+      },
+      watch: {
+        country() {
+          let loc = this.country_location[this.country];
+          this.lat = loc[0];
+          this.lng = loc[1];
+          this.city = this.country;
+        },
+        university() {
+          if (this.university_type) this.city = this.university_city[this.university];
+        }
+      },
+      computed: {
+      },
+      created() {
+        this.init(this.data);
+      }
+    });
+
+
+  </script>
+
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?a6bc92b553163ae26fadce961a0713cf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+</body>
+
+</html>

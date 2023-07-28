@@ -1,0 +1,156 @@
+<!--
+ * @Author: flwfdd
+ * @Date: 2021-07-29 18:04:16
+ * @LastEditTime: 2021-07-31 11:04:20
+ * @Description: 
+ * _(:з」∠)_
+-->
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <!--Code by. 范滇东-->
+  <title>毕业去向</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://fastly.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/axios@0.21.0/dist/axios.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <script src="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <!--引入思源字体-->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:100,300,400,500,700,900">
+
+  <style>
+    #app {
+      font-family: Noto Serif SC;
+      font-style: normal;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-container fluid>
+        <v-card color="pink lighten-3 white--text">
+          <v-card-title>
+            云南师大附中 大学蹭饭网
+          </v-card-title>
+          <v-card-text class="white--text">
+            Tips:<br />
+            1. 有任何问题请联系21L12网管(bushi)(flwfdd@qq.com)。<br />
+            2. 班级负责人也可联系获得管理权限。
+          </v-card-text>
+
+        </v-card>
+
+        <v-card color="cyan lighten-4 cyan--text" class="mt-4">
+          <v-card-title class="blue-grey--text text--darken-2">
+            {{hitokoto}}
+          </v-card-title>
+        </v-card>
+
+        <v-expansion-panels class="mt-4">
+          <v-expansion-panel class="cyan--text" v-for="(class_list_i,class_list_ind) in class_list">
+            <v-expansion-panel-header>{{class_list_ind}}</v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <template>
+                <v-card-title>
+                  {{class_list_ind}}总蹭饭网
+                </v-card-title>
+                <v-card-text>
+                  <v-btn outlined class="mx-0" small color="purple" :href="'./show.html?class_name='+class_list_ind"
+                    target="_blank">前往蹭饭
+                  </v-btn>
+                </v-card-text>
+              </template>
+
+              <template v-for="i in class_list_i">
+                <v-card-title>
+                  {{i}}
+                </v-card-title>
+                <v-card-text>
+                  <v-btn outlined class="mx-0" small color="purple" :href="'./show.html?class_name='+i" target="_blank">
+                    前往蹭饭
+                  </v-btn>
+                  <v-btn outlined class="mx-0" small color="green" :href="'./input.html?class_name='+i" target="_blank">
+                    录入信息
+                  </v-btn>
+                  <v-btn outlined class="mx-0" small color="red" :href="'./admin.html?class_name='+i" target="_blank">
+                    管理后台
+                  </v-btn>
+                </v-card-text>
+              </template>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
+
+        <v-card class="mt-4">
+          <v-card-text>Code by <a href="https://space.bilibili.com/27482524" target="_blank">范滇东</a></v-card-text>
+        </v-card>
+
+        <v-snackbar v-model="snackbar" color="blue">
+          {{snackbar_msg}}
+          <template v-slot:action="{attrs}">
+            <v-btn color="white" text v-bind="attrs" @click="snackbar=false">Close</v-btn>
+          </template>
+        </v-snackbar>
+      </v-container>
+    </v-app>
+  </div>
+
+
+  <script>
+    var vm = new Vue({ //主应用
+      vuetify: new Vuetify(),
+      el: "#app",
+      data: {
+        class_list: {"2022届":["2022届W1班","2022届W2班","2022届W3班","2022届W4班","2022届W5班","2022届W6班","2022届L1班","2022届L2班","2022届L3班","2022届L4班","2022届L5班","2022届L6班","2022届L7班","2022届L8班","2022届L9班","2022届L10班","2022届L11班","2022届L12班"],"2021届":["2021届W1班","2021届W2班","2021届W3班","2021届W4班","2021届W5班","2021届W6班","2021届L1班","2021届L2班","2021届L3班","2021届L4班","2021届L5班","2021届L6班","2021届L7班","2021届L8班","2021届L9班","2021届L10班","2021届L11班","2021届L12班"],"2020届":["2020届W1班","2020届W2班","2020届W3班","2020届W4班","2020届L1班","2020届L2班","2020届L3班","2020届L4班","2020届L5班","2020届L6班","2020届L7班","2020届L8班","2020届L9班","2020届L10班","2020届L11班","2020届L12班"],"2019届":["2019届W1班","2019届W2班","2019届W3班","2019届W4班","2019届W5班","2019届W6班","2019届L1班","2019届L2班","2019届L3班","2019届L4班","2019届L5班","2019届L6班","2019届L7班","2019届L8班","2019届L9班","2019届L10班","2019届L11班","2019届L12班"]},
+        hitokoto: "",
+        snackbar: false,
+        snackbar_msg: ""
+      },
+      methods: {
+        UpHitokoto: function () {
+          axios.get("https://v1.hitokoto.cn/")
+            .then(res => {
+              this.hitokoto = res.data.hitokoto + "  ——" + res.data.from;
+            })
+        },
+        Msg(msg) {
+          this.snackbar_msg = msg;
+          this.snackbar = true;
+        },
+        Log(msg) {
+          console.log(msg);
+        }
+      },
+      watch: {
+      },
+      computed: {
+      },
+      created() {
+        this.UpHitokoto();
+        setInterval(this.UpHitokoto, 10 * 1000);
+      }
+    });
+
+
+  </script>
+
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?a6bc92b553163ae26fadce961a0713cf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+</body>
+
+</html>

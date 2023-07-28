@@ -1,0 +1,221 @@
+<!--
+ * @Author: flwfdd
+ * @Date: 2021-07-29 10:21:53
+ * @LastEditTime: 2021-09-20 20:26:44
+ * @Description: 
+ * _(:з」∠)_
+-->
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <!--Code by. 范滇东-->
+  <title>毕业去向</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://fastly.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/axios@0.21.0/dist/axios.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Material+Icons" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+  <script src="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+  <!--引入思源字体-->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+SC:100,300,400,500,700,900">
+
+  <style>
+    #app {
+      font-family: Noto Serif SC;
+      font-style: normal;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-container fluid>
+        <v-card color="pink lighten-3 white--text">
+          <v-card-title>
+            {{class_name}} 大学蹭饭网
+          </v-card-title>
+          <v-card-text class="white--text">
+            Tips:<br />
+            1. 选择框均可输入进行筛选。<br />
+            2. 非大陆或其他大学请切换后手动输入。
+          </v-card-text>
+        </v-card>
+
+        <v-card class="mt-4" color="cyan lighten-4">
+          <v-container>
+            <v-row>
+              <v-col cols="6">
+                <v-text-field v-model="name" label="你的名字。"></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-switch v-model="university_type" :label="university_type?'大陆大学':'其他大学'"></v-switch>
+              </v-col>
+
+              <template v-if="university_type">
+                <v-col cols="12">
+                  <v-autocomplete v-model="university" :items="university_list" label="大学"></v-autocomplete>
+                </v-col>
+              </template>
+
+              <template v-else>
+                <v-col cols="12">
+                  <v-autocomplete v-model="country" :items="country_list" label="地区"></v-autocomplete>
+                </v-col>
+                <v-col cols="12">
+                  <v-text-field v-model="university" label="大学"></v-text-field>
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field v-model="lat" label="纬度"></v-text-field>
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field v-model="lng" label="经度"></v-text-field>
+                </v-col>
+              </template>
+
+              <v-col cols="12">
+                <v-dialog v-model="dialog">
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn block color="pink lighten-3 white--text" v-bind="attrs" v-on="on">提交</v-btn>
+                  </template>
+                  <v-card>
+                    <v-card-title>请确认以下信息</v-card-title>
+                    <v-card-text>
+                      姓名: {{name}}<br />
+                      地区: {{city}}<br />
+                      大学: {{university}}<br />
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn color="red" text @click="dialog = false">取消提交</v-btn>
+                      <v-btn color="green" text @click="Submit">确认提交</v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card>
+
+        <v-card class="mt-4">
+          <v-card-text>Code by 范滇东</v-card-text>
+        </v-card>
+
+        <v-snackbar v-model="snackbar" color="blue">
+          {{snackbar_msg}}
+          <template v-slot:action="{attrs}">
+            <v-btn color="white" text v-bind="attrs" @click="snackbar=false">Close</v-btn>
+          </template>
+        </v-snackbar>
+      </v-container>
+    </v-app>
+  </div>
+
+
+  <script>
+    var vm = new Vue({ //主应用
+      vuetify: new Vuetify(),
+      el: "#app",
+      data: {
+        class_name: "",
+        name: "",
+        university_type: true,
+        university: "",
+        university_city: {},
+        university_list: [],
+        country: "",
+        country_location: {},
+        country_list: [],
+        lat: "",
+        lng: "",
+        city: "",
+        dialog: false,
+        snackbar: false,
+        snackbar_msg: ""
+      },
+      methods: {
+        Submit() {
+          this.dialog = false;
+          axios.get("http://flwfdd.xyz:5707/api", {
+            params: {
+              type: "user_input",
+              data: {
+                class_name: this.class_name,
+                name: this.name,
+                city: this.city,
+                university_type: this.university_type,
+                university: this.university,
+                location: [Number(this.lat), Number(this.lng)]
+              }
+            }
+          })
+            .then(res => {
+              if (res.data.status == "ok") this.Msg("提交成功awa");
+              else this.Msg("提交失败qwq");
+            })
+            .catch(res => { this.Msg("提交失败qwq"); })
+        },
+        Msg(msg) {
+          this.snackbar_msg = msg;
+          this.snackbar = true;
+        },
+        Log(msg) {
+          console.log(msg);
+        }
+      },
+      watch: {
+        country() {
+          let loc = this.country_location[this.country];
+          this.lat = loc[0];
+          this.lng = loc[1];
+          this.city = this.country;
+        },
+        university() {
+          if (this.university_type) this.city = this.university_city[this.university];
+        }
+      },
+      computed: {
+      },
+      created() {
+        axios.get("./university_list.json")
+          .then(res => {
+            for (i in res.data) {
+              for (j of res.data[i]) {
+                this.university_city[j] = i;
+                this.university_list.push(j);
+              }
+            }
+          })
+
+        axios.get("./country_location.json")
+          .then(res => {
+            this.country_location = res.data;
+            for (i in res.data) this.country_list.push(i);
+          })
+
+        let match = window.document.URL.match(/class_name=\S+/);
+        if (match) this.class_name = decodeURI(match[0].substring(11));
+        else this.class_name = "错误！无班级！"
+      }
+    });
+
+
+  </script>
+
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?a6bc92b553163ae26fadce961a0713cf";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+</body>
+
+</html>
