@@ -41,7 +41,7 @@ def user_input(dic):
     return {"status":"ok"}
 
 def admin_delete(dic):
-    if dic['password']!='sukisu' and dic['password']!=read_json("./data/password.json")[dic['class_name']]:
+    if dic['password']!='sukisu233' and dic['password']!=read_json("./data/password.json")[dic['class_name']]:
         return {"status":"error"}
     path="./data/"+dic['class_name']+".json"
     data=read_json(path)

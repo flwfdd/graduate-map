@@ -18,7 +18,7 @@ def save_json(path,dic):
 
 dic=read_json("./class_list.json")
 for i in dic:
-    for j in dic[i]:
+    for j in [i,*dic[i]]:
         if os.path.exists("./"+j+".json")==False:
             os.system("cp {} {}".format("template.json",j+".json"))
         mdic=read_json("./"+j+".json")
